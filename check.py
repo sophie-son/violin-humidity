@@ -13,6 +13,7 @@ import csv
 import json
 import math
 import os
+import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -37,7 +38,7 @@ STATE_PATH = DATA / "state.json"
 UA = {"User-Agent": "violin-humidity-monitor/1.0"}
 
 
-def read_weather():
+def read_weather(retries=3, backoff=5):
     query = urllib.parse.urlencode({
         "latitude": LAT,
         "longitude": LON,
@@ -47,9 +48,18 @@ def read_weather():
     req = urllib.request.Request(
         "https://api.open-meteo.com/v1/forecast?" + query, headers=UA
     )
-    with urllib.request.urlopen(req, timeout=20) as r:
-        c = json.load(r)["current"]
-    return c["temperature_2m"], c["relative_humidity_2m"], c["dew_point_2m"]
+    last_err = None
+    for attempt in range(1, retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=20) as r:
+                c = json.load(r)["current"]
+            return c["temperature_2m"], c["relative_humidity_2m"], c["dew_point_2m"]
+        except Exception as e:
+            last_err = e
+            print(f"weather fetch attempt {attempt}/{retries} failed: {e}")
+            if attempt < retries:
+                time.sleep(backoff * attempt)
+    raise last_err
 
 
 def sat_vp(t_c):
