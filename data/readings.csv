@@ -1,3 +1,4 @@
 timestamp_kst,outdoor_temp,outdoor_rh,dew_point,est_indoor_rh,status
 2026-09-29T00:35+09:00,16.3,67,10.1,46.8,ok
 2026-09-29T06:58+09:00,13.5,92,12.2,53.8,ok
+2026-09-29T10:55+09:00,20.4,70,14.7,63.3,high
